@@ -2,6 +2,8 @@ package pagination
 
 import (
 	"math"
+	"strconv"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 )
@@ -13,18 +15,33 @@ type Param struct {
 	Limit   int
 	OrderBy []string
 	ShowSQL bool
+	Url     string
 }
 
 // Paginator 分页返回
 type Paginator struct {
-	TotalRecord int         `json:"total_record"`
-	TotalPage   int         `json:"total_page"`
-	Records     interface{} `json:"records"`
-	Offset      int         `json:"offset"`
-	Limit       int         `json:"limit"`
-	Page        int         `json:"page"`
-	PrevPage    int         `json:"prev_page"`
-	NextPage    int         `json:"next_page"`
+	Data  interface{} `json:"data"`
+	Links interface{} `json:"links"`
+	Meta  interface{} `json:"meta"`
+}
+
+// Links page
+type Links struct {
+	First string `json:"first"`
+	Last  string `json:"last"`
+	Prev  string `json:"prev"`
+	Next  string `json:"next"`
+}
+
+// Meta page
+type Meta struct {
+	Current  int    `json:"current_page"`
+	From     int    `json:"from"`
+	LastPage int    `json:"last_page"`
+	Path     string `json:"path"`
+	PerPage  int    `json:"per_page"`
+	To       int    `json:"to"`
+	Total    int    `json:"total"`
 }
 
 // Paging 分页
@@ -48,8 +65,13 @@ func Paging(p *Param, result interface{}) *Paginator {
 
 	done := make(chan bool, 1)
 	var paginator Paginator
+	var links Links
+	var meta Meta
 	var count int
 	var offset int
+	var PrevPage int
+	var NextPage int
+	var lastPage int
 
 	go countRecords(db, result, done, &count)
 
@@ -61,26 +83,39 @@ func Paging(p *Param, result interface{}) *Paginator {
 
 	db.Limit(p.Limit).Offset(offset).Find(result)
 	<-done
+	url := strings.Split(p.Url, "?")
+	p.Url = url[0]
+	lastPage = int(math.Ceil(float64(count) / float64(p.Limit)))
 
-	paginator.TotalRecord = count
-	paginator.Records = result
-	paginator.Page = p.Page
-
-	paginator.Offset = offset
-	paginator.Limit = p.Limit
-	paginator.TotalPage = int(math.Ceil(float64(count) / float64(p.Limit)))
+	meta.Current = p.Page
+	meta.From = offset + 1
+	meta.LastPage = lastPage
+	meta.Path = p.Url
+	meta.PerPage = p.Limit
+	meta.To = offset
+	meta.Total = count
 
 	if p.Page > 1 {
-		paginator.PrevPage = p.Page - 1
+		PrevPage = p.Page - 1
 	} else {
-		paginator.PrevPage = p.Page
+		PrevPage = p.Page
 	}
 
-	if p.Page == paginator.TotalPage {
-		paginator.NextPage = p.Page
+	if p.Page == meta.Total {
+		NextPage = p.Page
 	} else {
-		paginator.NextPage = p.Page + 1
+		NextPage = p.Page + 1
 	}
+
+	links.First = p.Url + "?page=1"
+	links.Last = p.Url + "?page=" + strconv.Itoa(lastPage)
+	links.Prev = p.Url + "?page=" + strconv.Itoa(PrevPage)
+	links.Next = p.Url + "?page=" + strconv.Itoa(NextPage)
+
+	paginator.Data = result
+	paginator.Meta = meta
+	paginator.Links = links
+
 	return &paginator
 }
 
