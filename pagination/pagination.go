@@ -92,7 +92,7 @@ func Paging(p *Param, result interface{}) *Paginator {
 	meta.LastPage = lastPage
 	meta.Path = p.Url
 	meta.PerPage = p.Limit
-	meta.To = offset
+	meta.To = offset + p.Limit
 	meta.Total = count
 
 	if p.Page > 1 {
@@ -109,7 +109,9 @@ func Paging(p *Param, result interface{}) *Paginator {
 
 	links.First = p.Url + "?page=1"
 	links.Last = p.Url + "?page=" + strconv.Itoa(lastPage)
-	links.Prev = p.Url + "?page=" + strconv.Itoa(PrevPage)
+	if p.Page > 1 {
+		links.Prev = p.Url + "?page=" + strconv.Itoa(PrevPage)
+	}
 	links.Next = p.Url + "?page=" + strconv.Itoa(NextPage)
 
 	paginator.Data = result
