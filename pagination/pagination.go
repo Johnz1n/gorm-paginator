@@ -2,7 +2,6 @@ package pagination
 
 import (
 	"math"
-	"strconv"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -20,18 +19,18 @@ type Param struct {
 
 // Paginator 分页返回
 type Paginator struct {
-	Data  interface{} `json:"data"`
-	Links interface{} `json:"links"`
-	Meta  interface{} `json:"meta"`
+	Data interface{} `json:"data"`
+	// Links interface{} `json:"links"`
+	Meta interface{} `json:"meta"`
 }
 
 // Links page
-type Links struct {
-	First string `json:"first"`
-	Last  string `json:"last"`
-	Prev  string `json:"prev"`
-	Next  string `json:"next"`
-}
+// type Links struct {
+// 	First string `json:"first"`
+// 	Last  string `json:"last"`
+// 	Prev  string `json:"prev"`
+// 	Next  string `json:"next"`
+// }
 
 // Meta page
 type Meta struct {
@@ -65,12 +64,12 @@ func Paging(p *Param, result interface{}) *Paginator {
 
 	done := make(chan bool, 1)
 	var paginator Paginator
-	var links Links
+	// var links Links
 	var meta Meta
 	var count int
 	var offset int
-	var PrevPage int
-	var NextPage int
+	// var PrevPage int
+	// var NextPage int
 	var lastPage int
 
 	go countRecords(db, result, done, &count)
@@ -99,31 +98,31 @@ func Paging(p *Param, result interface{}) *Paginator {
 		meta.To = meta.Total
 	}
 
-	if p.Page > 1 {
-		PrevPage = p.Page - 1
-	} else {
-		PrevPage = p.Page
-	}
+	// if p.Page > 1 {
+	// 	PrevPage = p.Page - 1
+	// } else {
+	// 	PrevPage = p.Page
+	// }
 
-	if p.Page == meta.Total {
-		NextPage = p.Page
-	} else {
-		NextPage = p.Page + 1
-	}
+	// if p.Page == meta.Total {
+	// 	NextPage = p.Page
+	// } else {
+	// 	NextPage = p.Page + 1
+	// }
 
-	links.First = p.Url + "?page=1"
-	links.Last = p.Url + "?page=" + strconv.Itoa(lastPage)
+	// links.First = p.Url + "?page=1"
+	// links.Last = p.Url + "?page=" + strconv.Itoa(lastPage)
 
-	if p.Page > 1 {
-		links.Prev = p.Url + "?page=" + strconv.Itoa(PrevPage)
-	}
-	if meta.To < meta.Total {
-		links.Next = p.Url + "?page=" + strconv.Itoa(NextPage)
-	}
+	// if p.Page > 1 {
+	// 	links.Prev = p.Url + "?page=" + strconv.Itoa(PrevPage)
+	// }
+	// if meta.To < meta.Total {
+	// 	links.Next = p.Url + "?page=" + strconv.Itoa(NextPage)
+	// }
 
 	paginator.Data = result
 	paginator.Meta = meta
-	paginator.Links = links
+	// paginator.Links = links
 
 	return &paginator
 }
