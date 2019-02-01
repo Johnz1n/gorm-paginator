@@ -53,8 +53,8 @@ func Paging(p *Param, result interface{}) *Paginator {
 	if p.Page < 1 {
 		p.Page = 1
 	}
-	if p.Limit == 0 {
-		p.Limit = 10
+	if p.Limit == 0 || p.Limit > 15 {
+		p.Limit = 15
 	}
 	if len(p.OrderBy) > 0 {
 		for _, o := range p.OrderBy {
