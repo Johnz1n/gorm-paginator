@@ -15,6 +15,7 @@ type Param struct {
 	OrderBy []string
 	ShowSQL bool
 	Url     string
+	All     bool
 }
 
 // Paginator 分页返回
@@ -73,7 +74,10 @@ func Paging(p *Param, result interface{}) *Paginator {
 	var lastPage int
 
 	go countRecords(db, result, done, &count)
-
+	<-done
+	if p.All == true {
+		p.Limit = count
+	}
 	if p.Page == 1 {
 		offset = 0
 	} else {
@@ -81,7 +85,6 @@ func Paging(p *Param, result interface{}) *Paginator {
 	}
 
 	db.Limit(p.Limit).Offset(offset).Find(result)
-	<-done
 	url := strings.Split(p.Url, "?")
 	p.Url = url[0]
 	lastPage = int(math.Ceil(float64(count) / float64(p.Limit)))
