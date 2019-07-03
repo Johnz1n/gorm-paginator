@@ -87,7 +87,11 @@ func Paging(p *Param, result interface{}) *Paginator {
 	db.Limit(p.Limit).Offset(offset).Find(result)
 	url := strings.Split(p.Url, "?")
 	p.Url = url[0]
-	lastPage = int(math.Ceil(float64(count) / float64(p.Limit)))
+	if p.Limit > 0 {
+		lastPage = int(math.Ceil(float64(count) / float64(p.Limit)))
+	} else {
+		lastPage = 1
+	}
 
 	meta.Current = p.Page
 	meta.From = offset + 1
