@@ -135,6 +135,6 @@ func Paging(p *Param, result interface{}) *Paginator {
 }
 
 func countRecords(db *gorm.DB, anyType interface{}, done chan bool, count *int) {
-	db.Model(anyType).Count(count)
+	db.Model(anyType).Group("").Count(count)
 	done <- true
 }
